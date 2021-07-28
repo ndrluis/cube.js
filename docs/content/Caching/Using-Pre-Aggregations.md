@@ -93,6 +93,25 @@ cube(`Orders`, {
 });
 ```
 
+## Rollup Only Mode
+
+To make Cube.js _only_ serve requests from pre-aggregations, the
+[`CUBEJS_ROLLUP_ONLY` environment variable][ref-config-env-general] can be set
+to `true` on an API instance. This will prevent it from checking the freshness
+of the pre-aggregations; a separate [Refresh Worker][ref-deploy-refresh-wrkr]
+must be configured to keep the pre-aggregations up-to-date.
+
+> What happens if a pre-aggregation isn't available/found?
+
+> Confirm the following is correct with Dmitry:
+
+<!-- prettier-ignore-start -->
+[[info |]]
+| Setting `CUBEJS_ROLLUP_ONLY=true` on a [Refresh Worker][ref-deploy-refresh-wrkr]
+| will not prevent reads from the source database, as it requires access to the
+| source database in order to check if the pre-aggregations are up-to-date.
+<!-- prettier-ignore-end -->
+
 ## Read Only Data Source
 
 In some cases, it may not be possible to stage pre-aggregation query results in
@@ -343,6 +362,7 @@ currently manage this. For most use-cases, 1 day is sufficient.
 [wiki-partitioning]: https://en.wikipedia.org/wiki/Partition_(database)
 [ref-config-connect-db]: /connecting-to-the-database
 [ref-config-env]: /reference/environment-variables#cube-store
+[ref-config-env-general]: /config#general
 [ref-connect-db-athena]: /connecting-to-the-database#notes-aws-athena
 [ref-connect-db-redshift]: /connecting-to-the-database#notes-aws-redshift
 [ref-connect-db-bigquery]: /connecting-to-the-database#notes-google-big-query
@@ -355,6 +375,7 @@ currently manage this. For most use-cases, 1 day is sufficient.
 [ref-preagg-time-part]: /pre-aggregations#rollup-time-partitioning
 [ref-preagg-segment-part]: /pre-aggregations#rollup-segment-partitioning
 [ref-preaggs-refresh-key]: /pre-aggregations#refresh-key
+[ref-deploy-refresh-wrkr]: /deployment/overview#refresh-worker
 [ref-prod-list-refresh]: /deployment/production-checklist#set-up-refresh-worker
 [ref-config-extdbtype]: /config#options-reference-external-db-type
 [ref-config-driverfactory]: /config#options-reference-driver-factory

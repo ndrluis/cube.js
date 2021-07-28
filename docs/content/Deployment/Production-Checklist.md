@@ -108,7 +108,7 @@ instance to continue to serve requests with high availability.
 
 ```bash
 # Set to true so a Cube.js instance acts as a refresh worker
-CUBEJS_SCHEDULED_REFRESH_TIMER=true
+CUBEJS_REFRESH_WORKER=true
 ```
 
 For Serverless deployments, use the [Run Scheduled Refresh endpoint of the REST

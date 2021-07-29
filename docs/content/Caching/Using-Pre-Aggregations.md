@@ -141,16 +141,72 @@ splitting them by a defined attribute. An incoming query would be checked for
 this attribute, and **only** valid partitions required to satisfy it are
 selected. This results in faster refresh times due to unnecessary data not being
 scanned and processed, and possibly even reduced cost, depending on your
-database solution.
+database solution. Cube.js supports both time and segment-based partitioning.
 
-Cube.js supports [both time][ref-preagg-time-part] and
-[segment-based][ref-preagg-segment-part] partitioning. However, it must first be
-enabled for each pre-aggregation.
+### Time partitioning
 
-[Time-based partitioning][ref-preagg-time-part] is especially helpful for
-incremental refreshes; when configured, Cube.js will only refresh partitions as
-necessary. Without incremental refreshing, Cube.js will re-calculate the entire
-pre-aggregation whenever [the refresh key][ref-preaggs-refresh-key] changes.
+Time-based partitioning is especially helpful for incremental refreshes; when
+configured, Cube.js will only refresh partitions as necessary. Without
+incremental refreshing, Cube.js will re-calculate the entire pre-aggregation
+whenever [the refresh key][ref-preaggs-refresh-key] changes.
+
+<!-- prettier-ignore-start -->
+[[warning |]]
+| Partitioned rollups currently cannot be used by queries without time
+| dimensions.
+<!-- prettier-ignore-end -->
+
+Any `rollup` pre-aggregations can be partitioned by time using the
+`partitionGranularity` property. In the example below, the
+`partitionGranularity` is set to `month`, which means Cube.js will generate
+separate tables for each month's worth of data.
+
+```javascript
+cube(`Orders`, {
+  sql: `select * from orders`,
+
+  ...,
+
+  preAggregations: {
+    categoryAndDate: {
+      measures: [Orders.count, revenue],
+      dimensions: [category],
+      timeDimension: createdAt,
+      granularity: `day`,
+      partitionGranularity: `month`,
+    },
+  },
+});
+```
+
+### Segment Partitioning
+
+Any segments that can target a pre-aggregation can also be added with the
+`segments` property:
+
+```javascript
+cube(`Orders`, {
+  sql: `select * from orders`,
+
+  ...,
+
+  segments: {
+    toys: {
+      sql: `category = 'toys'`,
+    },
+  },
+
+  preAggregations: {
+    categoryAndDate: {
+      measures: [Orders.count, revenue],
+      segments: [toys],
+      timeDimension: createdAt,
+      granularity: `day`,
+      partitionGranularity: `month`,
+    },
+  },
+});
+```
 
 ## Garbage Collection
 
@@ -352,8 +408,6 @@ currently manage this. For most use-cases, 1 day is sufficient.
 [ref-schema-timedimension]: /types-and-formats#dimensions-types-time
 [ref-preaggs]: /pre-aggregations
 [ref-preagg-sched-refresh]: /pre-aggregations#scheduled-refresh
-[ref-preagg-time-part]: /pre-aggregations#rollup-time-partitioning
-[ref-preagg-segment-part]: /pre-aggregations#rollup-segment-partitioning
 [ref-preaggs-refresh-key]: /pre-aggregations#refresh-key
 [ref-prod-list-refresh]: /deployment/production-checklist#set-up-refresh-worker
 [ref-config-extdbtype]: /config#options-reference-external-db-type
